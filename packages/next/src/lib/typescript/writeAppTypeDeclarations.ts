@@ -56,6 +56,7 @@ export async function writeAppTypeDeclarations({
   }
 
   directives.push('/// <reference path="./.next/types/routes.d.ts" />')
+  directives.push('/// <reference path="./.next/types/validator.ts" />')
 
   // Push the notice in.
   directives.push(

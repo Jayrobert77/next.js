@@ -91,6 +91,7 @@ import {
   createRouteTypesManifest,
   writeRouteTypesManifest,
 } from './route-types-utils'
+import { generateValidatorFile } from './typegen'
 import { isParallelRouteSegment } from '../../../shared/lib/segment'
 
 export type SetupOpts = {
@@ -347,6 +348,11 @@ async function startWatcher(
       const layoutRoutes: Array<{ route: string; filePath: string }> = []
       const slots: Array<{ name: string; parent: string }> = []
 
+      // Separate collections for ALL file paths (for validator.ts)
+      const allAppPagePaths = new Set<string>()
+      const allPagesPagePaths = new Set<string>()
+      const allAppLayoutPaths = new Set<string>()
+
       let envChange = false
       let tsconfigChange = false
       let conflictingPageChange = 0
@@ -470,6 +476,19 @@ async function startWatcher(
         // Collect all current filenames for the TS plugin to use
         devPageFiles.add(fileName)
 
+        const relativePath = path.relative(dir, fileName)
+
+        // Collect ALL file paths for validator.ts (before any filtering)
+        if (opts.nextConfig.experimental.typedRoutes) {
+          if (isAppPath && layoutFileRegex.test(fileName)) {
+            allAppLayoutPaths.add(relativePath)
+          } else if (isAppPath && validFileMatcher.isAppRouterPage(fileName)) {
+            allAppPagePaths.add(relativePath)
+          } else if (!isAppPath && validFileMatcher.isPageFile(fileName)) {
+            allPagesPagePaths.add(relativePath)
+          }
+        }
+
         let pageName = absolutePathToPage(fileName, {
           dir: isAppPath ? appDir! : pagesDir!,
           extensions: nextConfig.pageExtensions,
@@ -585,6 +604,7 @@ async function startWatcher(
             continue
           }
         } else {
+          // pages directory
           if (useFileSystemPublicRoutes) {
             pageFiles.add(pageName)
             // always add to nextDataRoutes for now but in future only add
@@ -1016,6 +1036,12 @@ async function startWatcher(
 
           await writeRouteTypesManifest(routeTypesManifest, routeTypesFilePath)
         }
+
+        // Generate validator file
+        await fs.promises.writeFile(
+          validatorFilePath,
+          generateValidatorFile(newRouteTypesManifest)
+        )
 
         if (!resolved) {
           resolve()
