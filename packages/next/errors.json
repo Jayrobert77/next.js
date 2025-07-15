@@ -755,5 +755,10 @@
   "754": "%s cannot be used outside of a request context.",
   "755": "Route must be a string",
   "756": "Route %s not found",
-  "757": "Unknown styled string type: %s"
+  "757": "Unknown styled string type: %s",
+  "758": "Dynamic href \\`%s\\` found in <Link> while using the \\`/app\\` router, this is not supported. Instead, you should use \\`path\\` and \\`params\\` props. Read more: https://nextjs.org/docs/messages/app-dir-dynamic-href",
+  "759": "Invalid <Link> with neither `href` nor `path` prop. You must provide exactly one of these props.",
+  "760": "Invalid <Link> with `params` prop but no `path` prop. `params` can only be used with `path`.",
+  "761": "Invalid <Link> with both `href` and `path` props. You must use exactly one of these props.",
+  "762": "Invalid <Link> with `searchParams` prop but no `path` prop. `searchParams` can only be used with `path`."
 }
