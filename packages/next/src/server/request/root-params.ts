@@ -11,6 +11,7 @@ import {
   workUnitAsyncStorage,
   type PrerenderStore,
   type PrerenderStoreLegacy,
+  type PrerenderStoreModernDynamic,
   type PrerenderStorePPR,
 } from '../app-render/work-unit-async-storage.external'
 import { makeHangingPromise } from '../dynamic-rendering-utils'
@@ -55,6 +56,7 @@ export async function unstable_rootParams(): Promise<Params> {
         workStore,
         workUnitStore
       )
+    case 'prerender-dynamic':
     case 'request':
       return Promise.resolve(workUnitStore.rootParams)
     default:
@@ -65,7 +67,7 @@ export async function unstable_rootParams(): Promise<Params> {
 function createPrerenderRootParams(
   underlyingParams: Params,
   workStore: WorkStore,
-  prerenderStore: PrerenderStore
+  prerenderStore: Exclude<PrerenderStore, PrerenderStoreModernDynamic>
 ): Promise<Params> {
   switch (prerenderStore.type) {
     case 'prerender-client': {

@@ -55,6 +55,7 @@ export function draftMode(): Promise<DraftMode> {
   }
 
   switch (workUnitStore.type) {
+    case 'prerender-dynamic':
     case 'request':
       return createOrGetCachedDraftMode(workUnitStore.draftMode, workStore)
 
@@ -62,8 +63,8 @@ export function draftMode(): Promise<DraftMode> {
     case 'private-cache':
     case 'unstable-cache':
       // Inside of `"use cache"` or `unstable_cache`, draft mode is available if
-      // the outmost work unit store is a request store, and if draft mode is
-      // enabled.
+      // the outmost work unit store is a request store (or a dynamic prefetch),
+      // and if draft mode is enabled.
       const draftModeProvider = getDraftModeProviderForCacheScope(
         workStore,
         workUnitStore
@@ -72,9 +73,9 @@ export function draftMode(): Promise<DraftMode> {
       if (draftModeProvider) {
         return createOrGetCachedDraftMode(draftModeProvider, workStore)
       }
+      // Return empty draft mode
+      return createOrGetCachedDraftMode(null, workStore)
 
-    // Otherwise, we fall through to providing an empty draft mode.
-    // eslint-disable-next-line no-fallthrough
     case 'prerender':
     case 'prerender-client':
     case 'prerender-ppr':
@@ -257,6 +258,7 @@ function syncIODev(route: string | undefined, expression: string) {
         break
       case 'prerender':
       case 'prerender-client':
+      case 'prerender-dynamic':
       case 'prerender-ppr':
       case 'prerender-legacy':
       case 'cache':
@@ -322,7 +324,9 @@ function trackDynamicDraftMode(expression: string, constructorOpt: Function) {
           throw new Error(
             `Route ${workStore.route} used "${expression}" inside a function cached with "unstable_cache(...)". The enabled status of draftMode can be read in caches but you must not enable or disable draftMode inside a cache. See more info here: https://nextjs.org/docs/app/api-reference/functions/unstable_cache`
           )
-        case 'prerender': {
+
+        case 'prerender':
+        case 'prerender-dynamic': {
           const error = new Error(
             `Route ${workStore.route} used ${expression} without first calling \`await connection()\`. See more info here: https://nextjs.org/docs/messages/next-prerender-sync-headers`
           )

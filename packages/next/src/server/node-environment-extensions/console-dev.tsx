@@ -141,6 +141,7 @@ function patchConsoleMethodDEV(methodName: InterceptableConsoleMethod): void {
       switch (workUnitStore?.type) {
         case 'prerender':
         case 'prerender-client':
+        case 'prerender-dynamic':
           originalMethod.apply(this, dimConsoleCall(methodName, args))
           break
         case 'prerender-ppr':

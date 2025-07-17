@@ -68,6 +68,7 @@ export function connection(): Promise<void> {
           )
         case 'prerender':
         case 'prerender-client':
+        case 'prerender-dynamic':
           // We return a promise that never resolves to allow the prerender to
           // stall at this point.
           return makeHangingPromise(

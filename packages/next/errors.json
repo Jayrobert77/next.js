@@ -757,5 +757,11 @@
   "756": "Route %s not found",
   "757": "Unknown styled string type: %s",
   "758": "Unexpected FetchStrategy: %s",
-  "759": "Unexpected PrefetchKind: %s"
+  "759": "Unexpected PrefetchKind: %s",
+  "760": "\\`%s\\` was called during a dynamic prerender. Next.js should be preventing %s from being included in server components statically, but did not in this case.",
+  "761": "FetchStrategy.PPRDynamic should never be used when experimental.clientSegmentCache is disabled",
+  "762": "createPrerenderSearchParamsForClientPage should not be called in a dynamic prerender.",
+  "763": "createParamsFromClient should not be called in a dynamic prerender.",
+  "764": "createSearchParamsFromClient should not be called in a dynamic prerender.",
+  "765": "A dynamic prerender store should not be used for a route handler."
 }

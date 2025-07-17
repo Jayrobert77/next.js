@@ -18,6 +18,7 @@ import type { WorkStore } from '../app-render/work-async-storage.external'
 import { workAsyncStorage } from '../app-render/work-async-storage.external'
 import type {
   PrerenderStoreModernClient,
+  PrerenderStoreModernDynamic,
   PrivateUseCacheStore,
   RequestStore,
   RevalidateStore,
@@ -31,6 +32,8 @@ import {
   workUnitAsyncStorage,
   getDraftModeProviderForCacheScope,
   getCacheSignal,
+  isHmrRefresh,
+  getServerComponentsHmrCache,
 } from '../app-render/work-unit-async-storage.external'
 
 import { makeHangingPromise } from '../dynamic-rendering-utils'
@@ -67,8 +70,10 @@ import type { CacheLife } from './cache-life'
 
 interface PrivateCacheContext {
   readonly kind: 'private'
-  // TODO: Add dynamic prefetching store when this exists.
-  readonly outerWorkUnitStore: RequestStore | PrivateUseCacheStore
+  readonly outerWorkUnitStore:
+    | RequestStore
+    | PrivateUseCacheStore
+    | PrerenderStoreModernDynamic
 }
 
 interface PublicCacheContext {
@@ -184,8 +189,11 @@ function createUseCacheStore(
       tags: null,
       hmrRefreshHash:
         outerWorkUnitStore && getHmrRefreshHash(workStore, outerWorkUnitStore),
-      isHmrRefresh: outerWorkUnitStore?.isHmrRefresh ?? false,
-      serverComponentsHmrCache: outerWorkUnitStore?.serverComponentsHmrCache,
+      isHmrRefresh:
+        outerWorkUnitStore && isHmrRefresh(workStore, outerWorkUnitStore),
+      serverComponentsHmrCache:
+        outerWorkUnitStore &&
+        getServerComponentsHmrCache(workStore, outerWorkUnitStore),
       forceRevalidate: shouldForceRevalidate(workStore, outerWorkUnitStore),
       draftMode:
         outerWorkUnitStore &&
@@ -203,6 +211,7 @@ function createUseCacheStore(
         case 'request':
           useCacheOrRequestStore = outerWorkUnitStore
           break
+        case 'prerender-dynamic': // TODO(dynamic-ppr): is this correct?
         case 'prerender':
         case 'prerender-ppr':
         case 'prerender-legacy':
@@ -319,7 +328,7 @@ function propagateCacheLifeAndTags(
 ): void {
   if (cacheContext.kind === 'private') {
     switch (cacheContext.outerWorkUnitStore?.type) {
-      // TODO: Also propagate cache life and tags to dynamic prefetching stores.
+      case 'prerender-dynamic':
       case 'private-cache':
         propagateCacheLifeAndTagsToRevalidateStore(
           cacheContext.outerWorkUnitStore,
@@ -337,6 +346,7 @@ function propagateCacheLifeAndTags(
       case 'cache':
       case 'private-cache':
       case 'prerender':
+      case 'prerender-dynamic':
       case 'prerender-ppr':
       case 'prerender-legacy':
         propagateCacheLifeAndTagsToRevalidateStore(
@@ -483,6 +493,7 @@ async function generateCacheEntryImpl(
 
               if (outerWorkUnitStore) {
                 switch (outerWorkUnitStore.type) {
+                  case 'prerender-dynamic':
                   case 'prerender':
                     // The encoded arguments might contain hanging promises. In
                     // this case we don't want to reject with "Error: Connection
@@ -559,7 +570,7 @@ async function generateCacheEntryImpl(
   let stream: ReadableStream<Uint8Array>
 
   switch (outerWorkUnitStore?.type) {
-    // TODO: Dynamic prefetches should also use the prerender variant.
+    case 'prerender-dynamic':
     case 'prerender':
       const timeoutAbortController = new AbortController()
 
@@ -856,6 +867,7 @@ export function cache(
             )
           }
           case 'request':
+          case 'prerender-dynamic':
           case 'private-cache':
             cacheContext = {
               kind: 'private',
@@ -885,6 +897,7 @@ export function cache(
               `${expression} must not be used within a client component. Next.js should be preventing ${expression} from being allowed in client components statically, but did not in this case.`
             )
           case 'prerender':
+          case 'prerender-dynamic':
           case 'prerender-ppr':
           case 'prerender-legacy':
           case 'request':
@@ -1043,6 +1056,7 @@ export function cache(
       let encodedCacheKeyParts: FormData | string
 
       switch (workUnitStore?.type) {
+        case 'prerender-dynamic':
         case 'prerender':
           if (!isPageOrLayout) {
             // If the "use cache" function is not a page or a layout, we need to
@@ -1129,6 +1143,7 @@ export function cache(
                     workUnitStore.renderSignal,
                     'dynamic "use cache"'
                   )
+                case 'prerender-dynamic':
                 case 'prerender-ppr':
                 case 'prerender-legacy':
                 case 'request':
@@ -1142,7 +1157,30 @@ export function cache(
             }
 
             if (existingEntry.stale < DYNAMIC_PREFETCH_DYNAMIC_STALE) {
-              // TODO: Return hanging promise for dynamic prefetches.
+              switch (workUnitStore.type) {
+                case 'prerender-dynamic':
+                  // In a dynamic prerender, if the cache entry will become stale in less then 30 seconds,
+                  // we consider this cache entry dynamic as it's not worth prefetching.
+                  // It's better to leave a PPR hole that can be filled in dynamically
+                  // with a potentially cached entry.
+                  if (cacheSignal) {
+                    cacheSignal.endRead()
+                  }
+                  return makeHangingPromise(
+                    workUnitStore.renderSignal,
+                    'dynamic "use cache"'
+                  )
+                case 'prerender':
+                case 'prerender-ppr':
+                case 'prerender-legacy':
+                case 'request':
+                case 'cache':
+                case 'private-cache':
+                case 'unstable-cache':
+                  break
+                default:
+                  workUnitStore satisfies never
+              }
             }
           }
 
@@ -1186,6 +1224,7 @@ export function cache(
                   )
                 }
                 break
+              case 'prerender-dynamic':
               case 'prerender-ppr':
               case 'prerender-legacy':
               case 'request':
@@ -1282,6 +1321,7 @@ export function cache(
                 workUnitStore.renderSignal,
                 'dynamic "use cache"'
               )
+            case 'prerender-dynamic':
             case 'prerender-ppr':
             case 'prerender-legacy':
             case 'request':
@@ -1529,6 +1569,7 @@ function shouldForceRevalidate(
       case 'cache':
       case 'private-cache':
         return workUnitStore.forceRevalidate
+      case 'prerender-dynamic':
       case 'prerender':
       case 'prerender-client':
       case 'prerender-ppr':
@@ -1572,6 +1613,7 @@ function shouldDiscardCacheEntry(
     switch (workUnitStore.type) {
       case 'prerender':
         return false
+      case 'prerender-dynamic': // TODO(dynamic-ppr): is this correct?
       case 'prerender-client':
       case 'prerender-ppr':
       case 'prerender-legacy':

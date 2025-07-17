@@ -26,6 +26,7 @@ import type {
   RequestStore,
   PrerenderStoreLegacy,
   PrerenderStoreModern,
+  PrerenderStoreModernDynamic,
 } from '../app-render/work-unit-async-storage.external'
 
 // Once postpone is in stable we should switch to importing the postpone export directly
@@ -120,7 +121,12 @@ export function getFirstDynamicReason(
  */
 export function markCurrentScopeAsDynamic(
   store: WorkStore,
-  workUnitStore: undefined | Exclude<WorkUnitStore, PrerenderStoreModern>,
+  workUnitStore:
+    | undefined
+    | Exclude<
+        WorkUnitStore,
+        PrerenderStoreModern | PrerenderStoreModernDynamic
+      >,
   expression: string
 ): void {
   if (workUnitStore) {
@@ -230,6 +236,7 @@ export function trackDynamicDataInDynamicRender(workUnitStore: WorkUnitStore) {
       // A private cache scope is already dynamic by definition.
       return
     case 'prerender':
+    case 'prerender-dynamic':
     case 'prerender-legacy':
     case 'prerender-ppr':
     case 'prerender-client':
@@ -333,6 +340,21 @@ export function abortAndThrowOnSynchronousRequestDataAccess(
   throw createPrerenderInterruptedError(
     `Route ${route} needs to bail out of prerendering at this point because it used ${expression}.`
   )
+}
+
+/**
+ * Use this function when dynamically prerendering with dynamicIO.
+ * We don't want to error, because it's better to return something
+ * (and we've already aborted the render at the point where the sync dynamic error occured),
+ * but we should log an error server-side.
+ * @internal
+ */
+export function warnOnSyncDynamicError(dynamicTracking: DynamicTrackingState) {
+  if (dynamicTracking.syncDynamicErrorWithStack) {
+    // the server did something sync dynamic, likely
+    // leading to an early termination of the prerender.
+    console.error(dynamicTracking.syncDynamicErrorWithStack)
+  }
 }
 
 // For now these implementations are the same so we just reexport
@@ -519,6 +541,7 @@ export function createHangingInputAbortSignal(
 ): AbortSignal | undefined {
   switch (workUnitStore.type) {
     case 'prerender':
+    case 'prerender-dynamic':
       const controller = new AbortController()
 
       if (workUnitStore.cacheSignal) {
@@ -588,6 +611,10 @@ export function useDynamicRouteParams(expression: string) {
           // rendering component to effectively be a dynamic hole.
           React.use(makeHangingPromise(workUnitStore.renderSignal, expression))
           break
+        case 'prerender-dynamic':
+          throw new InvariantError(
+            `\`${expression}\` was called during a dynamic prerender. Next.js should be preventing ${expression} from being included in server components statically, but did not in this case.`
+          )
         case 'prerender-ppr':
           return postponeWithTracking(
             workStore.route,

@@ -61,6 +61,7 @@ export default function Form({
     }
   }
 
+  // TODO(dynamic-ppr): allow dynamic prefetches in Form
   const prefetch =
     prefetchProp === false || prefetchProp === null ? prefetchProp : null
 

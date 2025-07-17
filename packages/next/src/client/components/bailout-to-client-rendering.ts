@@ -12,6 +12,7 @@ export function bailoutToClientRendering(reason: string): void | never {
   if (workUnitStore) {
     switch (workUnitStore.type) {
       case 'prerender':
+      case 'prerender-dynamic':
       case 'prerender-client':
       case 'prerender-ppr':
       case 'prerender-legacy':

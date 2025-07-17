@@ -18,7 +18,10 @@
  */
 
 export type { NavigationResult } from './segment-cache-impl/navigation'
-export type { PrefetchTask } from './segment-cache-impl/scheduler'
+export type {
+  PrefetchTask,
+  IncludeDynamicData,
+} from './segment-cache-impl/scheduler'
 
 const notEnabled: any = () => {
   throw new Error(
@@ -145,4 +148,5 @@ export {
   FetchStrategy,
   convertFetchStrategyToPrefetchKind,
   convertPrefetchKindToFetchStrategy,
+  isFetchStrategyLessSpecific,
 } from './segment-cache-impl/fetch-strategy'
