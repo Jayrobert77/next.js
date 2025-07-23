@@ -731,7 +731,7 @@ async function generateDynamicPrefetchResult(
     onError
   )
 
-  applyMetadataFromPrerenderResult(response, metadata, res, workStore)
+  applyMetadataFromPrerenderResult(response, metadata, workStore)
   metadata.fetchMetrics = ctx.workStore.fetchMetrics
 
   if (response.isPartial) {
@@ -1832,7 +1832,7 @@ async function renderToHTMLOrFlightImpl(
       }
     }
 
-    applyMetadataFromPrerenderResult(response, metadata, res, workStore)
+    applyMetadataFromPrerenderResult(response, metadata, workStore)
 
     if (response.renderResumeDataCache) {
       metadata.renderResumeDataCache = response.renderResumeDataCache
@@ -2098,7 +2098,6 @@ function applyMetadataFromPrerenderResult(
     | 'collectedTags'
   >,
   metadata: AppPageRenderResultMetadata,
-  res: BaseNextResponse<any>,
   workStore: WorkStore
 ) {
   if (response.collectedTags) {
@@ -2107,7 +2106,6 @@ function applyMetadataFromPrerenderResult(
 
   // Let the client router know how long to keep the cached entry around.
   const staleHeader = String(response.collectedStale)
-  res.setHeader(NEXT_ROUTER_STALE_TIME_HEADER, staleHeader)
   metadata.headers ??= {}
   metadata.headers[NEXT_ROUTER_STALE_TIME_HEADER] = staleHeader
 
