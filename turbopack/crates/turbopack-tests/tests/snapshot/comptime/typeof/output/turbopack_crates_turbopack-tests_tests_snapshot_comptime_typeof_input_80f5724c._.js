@@ -1,6 +1,6 @@
-(globalThis.TURBOPACK = globalThis.TURBOPACK || []).push(["output/turbopack_crates_turbopack-tests_tests_snapshot_comptime_typeof_input_80f5724c._.js", {
-
-"[project]/turbopack/crates/turbopack-tests/tests/snapshot/comptime/typeof/input/cjs.js [test] (ecmascript)": ((__turbopack_context__) => {
+(globalThis.TURBOPACK ||= []).push(["output/turbopack_crates_turbopack-tests_tests_snapshot_comptime_typeof_input_80f5724c._.js",
+"[project]/turbopack/crates/turbopack-tests/tests/snapshot/comptime/typeof/input/cjs.js [test] (ecmascript)",
+((__turbopack_context__) => {
 
 var { m: module, e: exports } = __turbopack_context__;
 {
@@ -17,12 +17,16 @@ console.log('typeof exports', ("TURBOPACK compile-time value", "object"));
 // CJS, should be real require
 console.log(/*TURBOPACK member replacement*/ __turbopack_context__.t);
 }}),
-"[project]/turbopack/crates/turbopack-tests/tests/snapshot/comptime/typeof/input/dep.js [test] (ecmascript)": ((__turbopack_context__) => {
+
+"[project]/turbopack/crates/turbopack-tests/tests/snapshot/comptime/typeof/input/dep.js [test] (ecmascript)",
+((__turbopack_context__) => {
 
 var { m: module, e: exports } = __turbopack_context__;
 {
 }}),
-"[project]/turbopack/crates/turbopack-tests/tests/snapshot/comptime/typeof/input/esm-automatic.js [test] (ecmascript)": ((__turbopack_context__) => {
+
+"[project]/turbopack/crates/turbopack-tests/tests/snapshot/comptime/typeof/input/esm-automatic.js [test] (ecmascript)",
+((__turbopack_context__) => {
 "use strict";
 
 __turbopack_context__.s({});
@@ -41,7 +45,9 @@ console.log('typeof exports', ("TURBOPACK compile-time value", "undefined"));
 // ESM, should be require stub
 console.log(/*TURBOPACK member replacement*/ __turbopack_context__.z);
 }),
-"[project]/turbopack/crates/turbopack-tests/tests/snapshot/comptime/typeof/input/esm-specified.mjs [test] (ecmascript)": ((__turbopack_context__) => {
+
+"[project]/turbopack/crates/turbopack-tests/tests/snapshot/comptime/typeof/input/esm-specified.mjs [test] (ecmascript)",
+((__turbopack_context__) => {
 "use strict";
 
 __turbopack_context__.s({});
@@ -58,7 +64,9 @@ console.log('typeof exports', ("TURBOPACK compile-time value", "undefined"));
 // ESM, should be require stub
 console.log(/*TURBOPACK member replacement*/ __turbopack_context__.z);
 }),
-"[project]/turbopack/crates/turbopack-tests/tests/snapshot/comptime/typeof/input/index.js [test] (ecmascript)": ((__turbopack_context__) => {
+
+"[project]/turbopack/crates/turbopack-tests/tests/snapshot/comptime/typeof/input/index.js [test] (ecmascript)",
+((__turbopack_context__) => {
 "use strict";
 
 __turbopack_context__.s({});
@@ -68,7 +76,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$turbopack$2f$crates$2f$turbo
 ;
 ;
 ;
-}),
-}]);
+})
+]);
 
 //# sourceMappingURL=turbopack_crates_turbopack-tests_tests_snapshot_comptime_typeof_input_80f5724c._.js.map

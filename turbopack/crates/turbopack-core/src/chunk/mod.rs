@@ -61,7 +61,7 @@ impl Display for ModuleId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ModuleId::Number(i) => write!(f, "{i}"),
-            ModuleId::String(s) => write!(f, "{s}"),
+            ModuleId::String(s) => write!(f, "'{s}'"),
         }
     }
 }

@@ -155,7 +155,7 @@ impl EcmascriptDevChunkListContent {
         writedoc!(
             code,
             r#"
-                (globalThis.TURBOPACK_CHUNK_LISTS = globalThis.TURBOPACK_CHUNK_LISTS || []).push({{
+                (globalThis.TURBOPACK_CHUNK_LISTS ||= []).push({{
                     script: {script_or_path},
                     chunks: {:#},
                     source: {:#}

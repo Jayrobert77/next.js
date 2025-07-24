@@ -158,9 +158,8 @@ impl EcmascriptBrowserEvaluateChunk {
         writedoc!(
             code,
             r#"
-                (globalThis.TURBOPACK = globalThis.TURBOPACK || []).push([
+                (globalThis.TURBOPACK ||= []).push([
                     {script_or_path},
-                    {{}},
                     {}
                 ]);
             "#,

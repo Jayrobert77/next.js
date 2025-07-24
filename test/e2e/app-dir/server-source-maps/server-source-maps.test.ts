@@ -519,7 +519,7 @@ describe('app-dir - server source maps', () => {
         ).toContain(
           '' +
             '\nError: module-evaluation' +
-            '\n    at <TurbopackModuleID> (bundler:///app/module-evaluation/module.js:1:22)' +
+            '\n    at module.exports (bundler:///app/module-evaluation/module.js:1:22)' +
             // TODO(veil): Turbopack internals. Feel free to update. Tracked in https://linear.app/vercel/issue/NEXT-4362
             '\n    at Object.<anonymous>'
         )

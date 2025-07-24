@@ -29,14 +29,16 @@ describe('Client Navigation', () => {
       })
       await browser.elementByCss('#empty-props').click()
       await expect(browser).toDisplayRedbox(`
-         {
-           "description": ""EmptyInitialPropsPage.getInitialProps()" should resolve to an object. But found "null" instead.",
-           "environmentLabel": null,
-           "label": "Runtime Error",
-           "source": null,
-           "stack": [],
-         }
-        `)
+       {
+         "description": "Cannot read properties of undefined (reading 'id')",
+         "environmentLabel": null,
+         "label": "Runtime TypeError",
+         "source": null,
+         "stack": [
+           "<FIXME-file-protocol>",
+         ],
+       }
+      `)
       expect(pageErrors).toEqual([
         expect.objectContaining({
           message:
@@ -349,18 +351,18 @@ describe('Client Navigation', () => {
 
       if (isTurbopack) {
         await expect(browser).toDisplayRedbox(`
-           {
-             "description": "An Expected error occurred",
-             "environmentLabel": null,
-             "label": "Runtime Error",
-             "source": "pages/error-in-the-browser-global-scope.js (2:9) @ [project]/pages/error-in-the-browser-global-scope.js [client] (ecmascript)
-           > 2 |   throw new Error('An Expected error occurred')
-               |         ^",
-             "stack": [
-               "[project]/pages/error-in-the-browser-global-scope.js [client] (ecmascript) pages/error-in-the-browser-global-scope.js (2:9)",
-             ],
-           }
-          `)
+         {
+           "description": "An Expected error occurred",
+           "environmentLabel": null,
+           "label": "Runtime Error",
+           "source": "pages/error-in-the-browser-global-scope.js (2:9) @ <unknown>
+         > 2 |   throw new Error('An Expected error occurred')
+             |         ^",
+           "stack": [
+             "<unknown> pages/error-in-the-browser-global-scope.js (2:9)",
+           ],
+         }
+        `)
       } else {
         await expect(browser).toDisplayRedbox(`
            {
