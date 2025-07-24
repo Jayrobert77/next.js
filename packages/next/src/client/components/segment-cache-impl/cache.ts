@@ -63,6 +63,7 @@ import {
   DOC_PREFETCH_RANGE_HEADER_VALUE,
   doesExportedHtmlMatchBuildId,
 } from '../../../shared/lib/segment-cache/output-export-prefetch-encoding'
+import { FetchStrategy } from '../segment-cache'
 
 // A note on async/await when working in the prefetch cache:
 //
@@ -164,12 +165,6 @@ export type RouteCacheEntry =
   | PendingRouteCacheEntry
   | FulfilledRouteCacheEntry
   | RejectedRouteCacheEntry
-
-export const enum FetchStrategy {
-  PPR,
-  Full,
-  LoadingBoundary,
-}
 
 type SegmentCacheEntryShared = {
   staleAt: number
@@ -415,7 +410,8 @@ export function getSegmentKeypathForTask(
   // If we're fetching using PPR, we do not need to include the search params in
   // the cache key, because the search params are treated as dynamic data. The
   // cache entry is valid for all possible search param values.
-  const isDynamicTask = task.includeDynamicData || !route.isPPREnabled
+  const isDynamicTask =
+    task.fetchStrategy === FetchStrategy.Full || !route.isPPREnabled
   return isDynamicTask && path.endsWith('/' + PAGE_SEGMENT_KEY)
     ? [path, route.renderedSearch]
     : [path]
@@ -1161,8 +1157,15 @@ export async function fetchRouteOnCacheMiss(
         routeIsPPREnabled
       )
     } else {
-      // PPR is not enabled for this route. The server responds with a
-      // different format (FlightRouterState) that we need to convert.
+      // PPR is not enabled for this route.
+
+      // We start "auto" prefetches with a PPR strategy by default. If it's that (and not e.g. a `FetchStrategy.Full`),
+      // we should update the task accordingly.
+      if (task.fetchStrategy === FetchStrategy.PPR) {
+        task.fetchStrategy = FetchStrategy.LoadingBoundary
+      }
+
+      // For non-PPR routes, the server responds with a different format (FlightRouterState) that we need to convert.
       // TODO: We will unify the responses eventually. I'm keeping the types
       // separate for now because FlightRouterState has so many
       // overloaded concerns.

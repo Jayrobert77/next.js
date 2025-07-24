@@ -14,7 +14,10 @@ import {
 import { reducer } from './router-reducer/router-reducer'
 import { startTransition } from 'react'
 import { isThenable } from '../../shared/lib/is-thenable'
-import { prefetch as prefetchWithSegmentCache } from './segment-cache'
+import {
+  convertPrefetchKindToFetchStrategy,
+  prefetch as prefetchWithSegmentCache,
+} from './segment-cache'
 import { dispatchAppRouterAction } from './use-action-queue'
 import { addBasePath } from '../add-base-path'
 import { createPrefetchURL, isExternalURL } from './app-router'
@@ -323,11 +326,16 @@ export const publicAppRouterInstance: AppRouterInstance = {
       // cache. So we don't need to dispatch an action.
       (href: string, options?: PrefetchOptions) => {
         const actionQueue = getAppRouterActionQueue()
+        const prefetchKind = options?.kind ?? PrefetchKind.AUTO
+        if (prefetchKind === PrefetchKind.TEMPORARY) {
+          // This concept doesn't exist in the segment cache implementation.
+          return
+        }
         prefetchWithSegmentCache(
           href,
           actionQueue.state.nextUrl,
           actionQueue.state.tree,
-          options?.kind === PrefetchKind.FULL,
+          convertPrefetchKindToFetchStrategy(prefetchKind),
           options?.onInvalidate ?? null
         )
       }

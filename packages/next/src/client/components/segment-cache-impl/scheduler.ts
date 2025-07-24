@@ -18,7 +18,6 @@ import {
   fetchSegmentPrefetchesUsingDynamicRequest,
   type PendingSegmentCacheEntry,
   convertRouteTreeToFlightRouterState,
-  FetchStrategy,
   readOrCreateRevalidatingSegmentEntry,
   upsertSegmentEntry,
   type FulfilledSegmentCacheEntry,
@@ -28,7 +27,11 @@ import {
   getSegmentKeypathForTask,
 } from './cache'
 import type { RouteCacheKey } from './cache-key'
-import { getCurrentCacheVersion, PrefetchPriority } from '../segment-cache'
+import {
+  getCurrentCacheVersion,
+  PrefetchPriority,
+  FetchStrategy,
+} from '../segment-cache'
 import {
   addSearchParamsIfPageSegment,
   PAGE_SEGMENT_KEY,
@@ -64,9 +67,9 @@ export type PrefetchTask = {
 
   /**
    * Whether to prefetch dynamic data, in addition to static data. This is
-   * used by <Link prefetch={true}>.
+   * used by `<Link prefetch={true}>`.
    */
-  includeDynamicData: boolean
+  fetchStrategy: FetchStrategy
 
   /**
    * sortId is an incrementing counter
@@ -194,13 +197,13 @@ let mostRecentlyHoveredLink: PrefetchTask | null = null
  *
  * @param key The RouteCacheKey to prefetch.
  * @param treeAtTimeOfPrefetch The app's current FlightRouterState
- * @param includeDynamicData Whether to prefetch dynamic data, in addition to
- * static data. This is used by <Link prefetch={true}>.
+ * @param fetchStrategy Whether to prefetch dynamic data, in addition to
+ * static data. This is used by `<Link prefetch={true}>`.
  */
 export function schedulePrefetchTask(
   key: RouteCacheKey,
   treeAtTimeOfPrefetch: FlightRouterState,
-  includeDynamicData: boolean,
+  fetchStrategy: FetchStrategy,
   priority: PrefetchPriority,
   onInvalidate: null | (() => void)
 ): PrefetchTask {
@@ -212,7 +215,7 @@ export function schedulePrefetchTask(
     priority,
     phase: PrefetchPhase.RouteTree,
     hasBackgroundWork: false,
-    includeDynamicData,
+    fetchStrategy,
     sortId: sortIdCounter++,
     isCanceled: false,
     onInvalidate,
@@ -248,7 +251,7 @@ export function cancelPrefetchTask(task: PrefetchTask): void {
 export function reschedulePrefetchTask(
   task: PrefetchTask,
   treeAtTimeOfPrefetch: FlightRouterState,
-  includeDynamicData: boolean,
+  fetchStrategy: FetchStrategy,
   priority: PrefetchPriority
 ): void {
   // Bump the prefetch task to the top of the queue, as if it were a fresh
@@ -271,7 +274,7 @@ export function reschedulePrefetchTask(
     task === mostRecentlyHoveredLink ? PrefetchPriority.Intent : priority
 
   task.treeAtTimeOfPrefetch = treeAtTimeOfPrefetch
-  task.includeDynamicData = includeDynamicData
+  task.fetchStrategy = fetchStrategy
 
   trackMostRecentlyHoveredLink(task)
 
@@ -549,13 +552,24 @@ function pingRootRouteTree(
         return PrefetchTaskExitStatus.InProgress
       }
       const tree = route.tree
-
-      // Determine which fetch strategy to use for this prefetch task.
-      const fetchStrategy = task.includeDynamicData
-        ? FetchStrategy.Full
-        : route.isPPREnabled
-          ? FetchStrategy.PPR
-          : FetchStrategy.LoadingBoundary
+      // FIXME: this is ugly
+      switch (task.fetchStrategy) {
+        case FetchStrategy.LoadingBoundary: {
+          if (route.isPPREnabled) {
+            task.fetchStrategy = FetchStrategy.PPR
+          }
+          break
+        }
+        case FetchStrategy.PPR: {
+          if (!route.isPPREnabled) {
+            task.fetchStrategy = FetchStrategy.LoadingBoundary
+          }
+          break
+        }
+        case FetchStrategy.Full:
+        default:
+      }
+      const fetchStrategy = task.fetchStrategy
 
       switch (fetchStrategy) {
         case FetchStrategy.PPR:

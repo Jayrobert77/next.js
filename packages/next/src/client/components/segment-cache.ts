@@ -140,3 +140,9 @@ export const enum PrefetchPriority {
    */
   Background = 0,
 }
+
+export {
+  FetchStrategy,
+  convertFetchStrategyToPrefetchKind,
+  convertPrefetchKindToFetchStrategy,
+} from './segment-cache-impl/fetch-strategy'
