@@ -193,7 +193,7 @@ pub mod tests {
         io::prelude::*,
     };
 
-    use turbo_rcstr::RcStr;
+    use turbo_rcstr::{RcStr, rcstr};
     use turbo_tasks::{Completion, ReadRef, Vc, apply_effects};
     use turbo_tasks_backend::{BackendOptions, TurboTasksBackend, noop_backing_storage};
 
@@ -225,14 +225,14 @@ pub mod tests {
         let path: RcStr = scratch.path().to_str().unwrap().into();
         tt.run_once(async {
             let fs = Vc::upcast::<Box<dyn FileSystem>>(DiskFileSystem::new(
-                "temp".into(),
+                rcstr!("temp"),
                 path,
                 Vec::new(),
             ));
             let read_dir = fs
                 .root()
                 .await?
-                .read_glob(Glob::new("**".into()))
+                .read_glob(Glob::new(rcstr!("**")))
                 .await
                 .unwrap();
             assert_eq!(read_dir.results.len(), 2);
@@ -257,7 +257,7 @@ pub mod tests {
             let read_dir = fs
                 .root()
                 .await?
-                .read_glob(Glob::new("**/bar".into()))
+                .read_glob(Glob::new(rcstr!("**/bar")))
                 .await
                 .unwrap();
             assert_eq!(read_dir.results.len(), 0);
@@ -299,14 +299,14 @@ pub mod tests {
         let path: RcStr = scratch.path().to_str().unwrap().into();
         tt.run_once(async {
             let fs = Vc::upcast::<Box<dyn FileSystem>>(DiskFileSystem::new(
-                "temp".into(),
+                rcstr!("temp"),
                 path,
                 Vec::new(),
             ));
             let read_dir = fs
                 .root()
                 .await?
-                .read_glob(Glob::new("*.js".into()))
+                .read_glob(Glob::new(rcstr!("*.js")))
                 .await
                 .unwrap();
             assert_eq!(read_dir.results.len(), 1);
@@ -339,7 +339,7 @@ pub mod tests {
 
     #[turbo_tasks::function(operation)]
     pub fn track_star_star_glob(path: FileSystemPath) -> Vc<Completion> {
-        path.track_glob(Glob::new("**".into()), false)
+        path.track_glob(Glob::new(rcstr!("**")), false)
     }
 
     #[cfg(unix)]
@@ -384,7 +384,7 @@ pub mod tests {
         let path: RcStr = scratch.path().to_str().unwrap().into();
         tt.run_once(async {
             let fs = Vc::upcast::<Box<dyn FileSystem>>(DiskFileSystem::new(
-                "temp".into(),
+                rcstr!("temp"),
                 path,
                 Vec::new(),
             ));
@@ -417,7 +417,7 @@ pub mod tests {
             // Modify a symlink target file
             let write_result = write(
                 fs.root().await?.join("link_target.js")?,
-                "new_contents".into(),
+                rcstr!("new_contents"),
             );
             write_result.read_strongly_consistent().await?;
             apply_effects(write_result).await?;
@@ -457,15 +457,17 @@ pub mod tests {
         ));
         let path: RcStr = scratch.path().to_str().unwrap().into();
         tt.run_once(async {
+            use turbo_rcstr::rcstr;
+
             let fs = Vc::upcast::<Box<dyn FileSystem>>(DiskFileSystem::new(
-                "temp".into(),
+                rcstr!("temp"),
                 path,
                 Vec::new(),
             ));
             let err = fs
                 .root()
                 .await?
-                .track_glob(Glob::new("**".into()), false)
+                .track_glob(Glob::new(rcstr!("**")), false)
                 .await
                 .expect_err("Should have detected an infinite loop");
 
@@ -478,7 +480,7 @@ pub mod tests {
             let err = fs
                 .root()
                 .await?
-                .track_glob(Glob::new("**".into()), false)
+                .track_glob(Glob::new(rcstr!("**")), false)
                 .await
                 .expect_err("Should have detected an infinite loop");
 
@@ -518,14 +520,14 @@ pub mod tests {
         let path: RcStr = scratch.path().to_str().unwrap().into();
         tt.run_once(async {
             let fs = Vc::upcast::<Box<dyn FileSystem>>(DiskFileSystem::new(
-                "temp".into(),
+                rcstr!("temp"),
                 path,
                 Vec::new(),
             ));
             let err = fs
                 .root()
                 .await?
-                .read_glob(Glob::new("**".into()))
+                .read_glob(Glob::new(rcstr!("**")))
                 .await
                 .expect_err("Should have detected an infinite loop");
 
@@ -538,7 +540,7 @@ pub mod tests {
             let err = fs
                 .root()
                 .await?
-                .track_glob(Glob::new("**".into()), false)
+                .track_glob(Glob::new(rcstr!("**")), false)
                 .await
                 .expect_err("Should have detected an infinite loop");
 
