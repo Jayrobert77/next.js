@@ -1,8 +1,32 @@
----
-title: How to use CSS-in-JS libraries
-nav_title: CSS-in-JS
-description: Use CSS-in-JS libraries with Next.js
-source: app/guides/css-in-js
----
+{
+  "name": "black-messiah-qr-display",
+  "version": "1.0.0",
+  "description": "QR code display application with automated generation",
+  "main": "index.html",
+  "scripts": {
+    "dev": "python3 -m http.server 3000",
+    "regen-qr": "node scripts/regen-qr.js",
+    "regen-qr:local": "PUBLIC_URL=http://localhost:8080 node scripts/regen-qr.js",
+    "regen-qr:prod": "node scripts/regen-qr.js",
+    "build": "npm run regen-qr",
+    "start": "npm run dev",
+    "deploy": "./scripts/deploy.sh",
+    "test": "echo 'Testing QR display...' && curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/qr-display.html || echo 'Server not running'"
+  },
+  "dependencies": {
+    "qrcode": "^1.5.3"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "qr-code",
+    "display",
+    "static-site"
+  ],
+  "author": "Jeremiah Johnson",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "."
+  }
+}
 
-{/* DO NOT EDIT. The content of this doc is generated from the source above. To edit the content of this page, navigate to the source page in your editor. You can use the `<PagesOnly>Content</PagesOnly>` component to add content that is specific to the Pages Router. Any shared content should not be wrapped in a component. */}
