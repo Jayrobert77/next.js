@@ -10,7 +10,7 @@ use turbo_tasks::{
     NonLocalValue, ResolvedVc, ValueToString, Vc, debug::ValueDebugFormat, trace::TraceRawVcs,
 };
 use turbopack_core::{
-    chunk::{ChunkableModule, ChunkableModuleReference, ChunkingContext, ModuleId},
+    chunk::{ChunkableModule, ChunkableModuleReference, ChunkingContext},
     issue::{IssueExt, IssueSeverity, IssueSource, StyledString, code_gen::CodeGenerationIssue},
     module::Module,
     reference::ModuleReference,
@@ -149,7 +149,7 @@ impl WorkerAssetReferenceCodeGen {
                 if let Some(args) = args {
                     match args.first_mut() {
                         Some(ExprOrSpread { spread: None, expr }) => {
-                            let item_id = module_id_to_lit(item_id);
+                            let item_id = module_id_to_lit(&item_id);
                             *expr = quote_expr!(
                                 "$turbopack_require($item_id)",
                                 turbopack_require: Expr = TURBOPACK_REQUIRE.into(),
